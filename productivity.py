@@ -94,10 +94,10 @@ class Productivity(object):
                             self.status_.id, name)))
 
     def reset_interval(self):
-        return datetime.timedelta(seconds=15)
+        return datetime.timedelta(minutes=15)
 
     def is_late(self, t):
-        return t.second % 10 >= 6
+        return t.hour >= 23 or t.hour <= 6
 
 
 def format_datetime(t):
@@ -112,4 +112,5 @@ def format_timedelta(t):
 def log_line(line):
     with open(os.path.join(LOG_DIR, 'events.log'), 'a') as outfile:
         outfile.write(line + '\n')
+    print(line)
 
