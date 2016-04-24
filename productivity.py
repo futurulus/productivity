@@ -29,15 +29,14 @@ def mkdirp(dirname):
 
 class Productivity(object):
     def __init__(self):
-        self.uptime_ = datetime.timedelta(0)
+        self.uptime_ = load_uptime()
         self.status_ = PLAYING
         self.working = False
-        mkdirp(LOG_DIR)
         t, u = datetime.datetime.now(), datetime.datetime.utcnow()
         self.log_event(t, u, 'start')
         self.last_clockin = u
         self.update(t, u)
-    
+
     def uptime(self):
         t, u = datetime.datetime.now(), datetime.datetime.utcnow()
         self.update(t, u)
@@ -107,6 +106,30 @@ def format_datetime(t):
 
 def format_timedelta(t):
     return ':'.join(str(e) for e in (t.days, t.seconds, t.microseconds))
+
+
+def load_uptime():
+    line = get_last_event()
+    if line is None:
+        return datetime.timedelta(0)
+
+    localtime_str, _, uptime_str = line.split('\t')[:3]
+    localtime = datetime.datetime(*[int(num) for num in localtime_str.split(':')])
+    now = datetime.datetime.now()
+    if localtime.date() == now.date():
+        return datetime.timedelta(*[int(num) for num in uptime_str.split(':')])
+    else:
+        return datetime.timedelta(0)
+
+
+def get_last_event():
+    mkdirp(LOG_DIR)
+    line = None
+    with open(os.path.join(LOG_DIR, 'events.log'), 'a+') as logfile:
+        logfile.seek(0)
+        for line in logfile:
+            pass
+    return line
 
 
 def log_line(line):
