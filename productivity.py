@@ -35,6 +35,8 @@ class Productivity(object):
         t, u = datetime.datetime.now(), datetime.datetime.utcnow()
         self.log_event(t, u, 'start')
         self.last_clockin = u
+        self.last_update_utc = u
+        self.last_update_local = t
         self.update(t, u)
 
     def uptime(self):
@@ -66,9 +68,9 @@ class Productivity(object):
 
     def update(self, t, u):
         if self.status_ == WORKING:
-            self.uptime_ += u - self.last_update
+            self.uptime_ += u - self.last_update_utc
         elif self.status_ == RED_ALERT:
-            self.uptime_ -= u - self.last_update
+            self.uptime_ -= u - self.last_update_utc
 
         if self.working and u - self.last_clockin >= self.reset_interval():
             self.working = False
@@ -80,10 +82,15 @@ class Productivity(object):
         else:
             self.status_ = WORKING if self.working else PLAYING
 
-        if self.status_ != old_status:
+        if t.date() != self.last_update_local.date():
+            self.log_event(t, u, 'reset')
+            self.uptime_ = datetime.timedelta(0)
+            self.log_event(t, u, 'update')
+        elif self.status_ != old_status:
             self.log_event(t, u, 'update')
 
-        self.last_update = u
+        self.last_update_utc = u
+        self.last_update_local = t
 
     def log_event(self, t, u, name):
         t_format = format_datetime(t)
