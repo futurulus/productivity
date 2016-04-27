@@ -1,5 +1,6 @@
-import os
+import bisect
 import datetime
+import os
 from collections import namedtuple
 
 
@@ -29,15 +30,21 @@ def mkdirp(dirname):
 
 class Productivity(object):
     def __init__(self):
-        self.uptime_ = load_uptime()
+        self.history = load_history()
+        t, u = datetime.datetime.now(), datetime.datetime.utcnow()
+        self.uptime_ = self.history.uptime(t.date())
         self.status_ = PLAYING
         self.working = False
-        t, u = datetime.datetime.now(), datetime.datetime.utcnow()
         self.log_event(t, u, 'start')
         self.last_clockin = u
         self.last_update_utc = u
         self.last_update_local = t
         self.update(t, u)
+
+    def uptime_and_percentile(self):
+        t, u = datetime.datetime.now(), datetime.datetime.utcnow()
+        self.update(t, u)
+        return self.uptime_, self.history.percentile(t.date(), self.uptime_)
 
     def uptime(self):
         t, u = datetime.datetime.now(), datetime.datetime.utcnow()
@@ -93,6 +100,7 @@ class Productivity(object):
         self.last_update_local = t
 
     def log_event(self, t, u, name):
+        self.history.add(t.date(), self.uptime_)
         t_format = format_datetime(t)
         u_format = format_datetime(u)
         up_format = format_timedelta(self.uptime_)
@@ -115,28 +123,47 @@ def format_timedelta(t):
     return ':'.join(str(e) for e in (t.days, t.seconds, t.microseconds))
 
 
-def load_uptime():
-    line = get_last_event()
-    if line is None:
-        return datetime.timedelta(0)
+class History(object):
+    def __init__(self):
+        self.date_map = {}
 
-    localtime_str, _, uptime_str = line.split('\t')[:3]
-    localtime = datetime.datetime(*[int(num) for num in localtime_str.split(':')])
-    now = datetime.datetime.now()
-    if localtime.date() == now.date():
-        return datetime.timedelta(*[int(num) for num in uptime_str.split(':')])
-    else:
-        return datetime.timedelta(0)
+    def add(self, date, uptime):
+        self.date_map[date] = uptime
+
+    def uptime(self, date):
+        if date in self.date_map:
+            return self.date_map[date]
+        else:
+            return datetime.timedelta(0)
+
+    def percentile(self, curr_date, uptime):
+        uptimes = sorted([td for d, td in self.date_map.iteritems()
+                          if td > datetime.timedelta(0) and d != curr_date])
+        if uptimes:
+            idx = bisect.bisect(uptimes, uptime)
+            return idx * 100.0 / len(uptimes)
+        elif uptime > datetime.timedelta(0):
+            return 100.0
+        else:
+            return 0.0
 
 
-def get_last_event():
+def load_history():
+    history = History()
+    for line in get_events():
+        localtime_str, _, uptime_str = line.split('\t')[:3]
+        date = datetime.datetime(*[int(num) for num in localtime_str.split(':')]).date()
+        uptime = datetime.timedelta(*[int(num) for num in uptime_str.split(':')])
+        history.add(date, uptime)
+    return history
+
+
+def get_events():
     mkdirp(LOG_DIR)
-    line = None
     with open(os.path.join(LOG_DIR, 'events.log'), 'a+') as logfile:
         logfile.seek(0)
         for line in logfile:
-            pass
-    return line
+            yield line
 
 
 def log_line(line):

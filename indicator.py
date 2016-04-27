@@ -60,7 +60,10 @@ class ProductivityIndicator(object):
         sys.exit(0)
 
     def update(self):
-        self.ind.set_label(format_timedelta(self.prod.uptime()))
+        uptime, percentile = self.prod.uptime_and_percentile()
+        uptime_str = format_timedelta(uptime)
+        percentile_str = format_percentile(percentile)
+        self.ind.set_label('%s [%s]' % (uptime_str, percentile_str))
         self.ind.set_icon(ICONS[self.prod.status()])
 
         self.clockin_item.set_label(prod.CRUNCH_MODE.label
@@ -85,6 +88,10 @@ def format_timedelta(td):
         return td_str
     else:
         return td_str[:point]
+
+
+def format_percentile(p):
+    return '%d%%' % int(p)
 
 
 if __name__ == '__main__':
