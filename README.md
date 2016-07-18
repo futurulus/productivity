@@ -21,6 +21,8 @@ Screenshots
 
 ![Clocking in](/screenshots/start.png)
 ![Clocking out](/screenshots/stop.png)
+![After-hours "red alert"](/screenshots/red_alert.png)
+![After-hours "crunch mode"](/screenshots/crunch.png)
 
 Installing
 ----------
@@ -36,7 +38,7 @@ Fire up the clock:
     ./productivity-indicator & disown
 
 Set it up to run on startup (you can also do this manually via the Startup
-Applications preferences window---point the path to the
+Applications preferences window&mdash;point the path to the
 ``productivity-indicator`` script):
 
     ./autostart
