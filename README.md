@@ -33,9 +33,10 @@ there):
 
 Fire up the clock:
 
-    ./productivity-indicator
+    ./productivity-indicator & disown
 
 Set it up to run on startup (you can also do this manually via the Startup
-Applications preferences window):
+Applications preferences window---point the path to the
+``productivity-indicator`` script):
 
     ./autostart
