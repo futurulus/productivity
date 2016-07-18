@@ -28,20 +28,14 @@ Installing
 Clone the repository (anywhere on your machine, but it will need to stay
 there):
 
-::
-
     git clone https://github.com/futurulus/productivity.git
     cd productivity
 
 Fire up the clock:
 
-::
-
     ./productivity-indicator
 
 Set it up to run on startup (you can also do this manually via the Startup
 Applications preferences window):
-
-::
 
     ./autostart
