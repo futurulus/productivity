@@ -1,6 +1,7 @@
 import datetime
 from os.path import abspath
 import sys
+import signal
 
 import gtk
 import appindicator as ind
@@ -95,4 +96,9 @@ def format_percentile(p):
 
 
 if __name__ == '__main__':
-    ProductivityIndicator().main()
+    pi = ProductivityIndicator()
+
+    signal.signal(signal.SIGTERM, lambda num, frame: pi.quit(None))
+    signal.signal(signal.SIGINT, lambda num, frame: pi.quit(None))
+
+    pi.main()
