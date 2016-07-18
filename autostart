@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+here="$(readlink -e "$(dirname $0)")"
+
+echo '[Desktop Entry]
+Type=Application
+Exec='"$here"'/productivity-indicator
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name[en_US]=Productivity Clock
+Name=Productivity Clock
+Comment[en_US]=A simple stopwatch for keeping track of productive hours
+Comment=A simple stopwatch for keeping track of productive hours' > "$here"/productivity-clock.desktop
+mkdir -p ~/.config/autostart
+mv -i "$here"/productivity-clock.desktop ~/.config/autostart/
